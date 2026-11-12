@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>超級「不但……還……」大冒險</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts for Retro Pixel & Cute Rounded style -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: "標楷體", "DFKai-SB", "BiauKai", "KaiTi", "STKaiti", serif !important;
+      background-color: #5c94fc;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      touch-action: manipulation;
+      overflow-x: hidden;
+      min-height: 100vh;
+      min-height: 100dvh;
+      font-size: 22px; /* Super giant baseline */
+    }
+
+    * {
+      font-family: "標楷體", "DFKai-SB", "BiauKai", "KaiTi", "STKaiti", serif !important;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button, .question-block, .brick-tile, .brick-block {
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .font-pixel {
+      font-family: "標楷體", "DFKai-SB", "BiauKai", "KaiTi", serif !important;
+      font-weight: 900;
+    }
+
+    /* Mario Block & Card Styles */
+    .mario-box {
+      background: #f89040;
+      border: 4px solid #000;
+      box-shadow: inset -4px -4px 0px #b84000, inset 4px 4px 0px #f8d8a0, 4px 4px 0px rgba(0,0,0,0.3);
+    }
+
+    .question-block {
+      background: linear-[#f8b800];
+      background-color: #f89000;
+      border: 4px solid #000;
+      box-shadow: inset -4px -4px 0px #a84000, inset 4px 4px 0px #f8f8a0, 4px 6px 0px rgba(0,0,0,0.3);
+      transition: all 0.15s ease;
+    }
+    .question-block:hover {
+      transform: translateY(-3px) scale(1.02);
+      filter: brightness(1.1);
+    }
+    .question-block:active {
+      transform: translateY(2px);
+      box-shadow: inset -2px -2px 0px #a84000, inset 2px 2px 0px #f8f8a0, 1px 1px 0px rgba(0,0,0,0.3);
+    }
+
+    .brick-block {
+      background-color: #b84418;
+      background-image: 
+        linear-gradient(90deg, #000 2px, transparent 2px),
+        linear-gradient(#000 2px, transparent 2px);
+      background-size: 20px 10px;
+      border: 4px solid #000;
+      box-shadow: inset -3px -3px 0px #781800, inset 3px 3px 0px #f88860, 3px 4px 0px rgba(0,0,0,0.25);
+    }
+    .brick-tile {
+      background: #d85020;
+      border: 3px solid #000;
+      box-shadow: inset -3px -3px 0px #801800, inset 3px 3px 0px #f89870, 2px 3px 0px rgba(0,0,0,0.3);
+    }
+
+    .pipe-green {
+      background: linear-gradient(90deg, #00a800 0%, #54e054 30%, #00a800 70%, #006000 100%);
+      border: 4px solid #000;
+    }
+
+    /* Coin Animation */
+    @keyframes floatUpFade {
+      0% { opacity: 1; transform: translateY(0) scale(1); }
+      50% { opacity: 1; transform: translateY(-40px) scale(1.3); }
+      100% { opacity: 0; transform: translateY(-70px) scale(0.8); }
+    }
+    .coin-pop {
+      animation: floatUpFade 0.7s forwards ease-out;
+    }
+
+    /* Cloud Animation */
+    @keyframes moveCloud {
+      0% { transform: translateX(100vw); }
+      100% { transform: translateX(-200px); }
+    }
+    .cloud-fast { animation: moveCloud 35s linear infinite; }
+    .cloud-slow { animation: moveCloud 60s linear infinite; }
+
+    /* Player Bounce Effect */
+    .mario-jump {
+      animation: marioJumpAnim 0.45s ease-out;
+    }
+    @keyframes marioJumpAnim {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-45px) scale(1.05); }
+      100% { transform: translateY(0); }
+    }
+
+    /* Pulsing & Shaking */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+    .shake-anim { animation: shake 0.4s ease-in-out; }
+
+    /* Glass overlay style */
+    .dialog-box {
+      background: rgba(255, 255, 255, 0.96);
+      border: 5px solid #000;
+      box-shadow: 8px 8px 0px rgba(0,0,0,0.4);
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #5c94fc; }
+    ::-webkit-scrollbar-thumb { background: #f89000; border-radius: 4px; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between relative overflow-x-hidden">
+
+  <!-- Background Clouds & Landscape -->
+  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+    <!-- Pixel Clouds -->
+    <div class="absolute top-8 cloud-fast opacity-80" style="top: 10%;">
+      <div class="w-32 h-10 bg-white rounded-full relative">
+        <div class="w-16 h-16 bg-white rounded-full absolute -top-8 left-4"></div>
+        <div class="w-12 h-12 bg-white rounded-full absolute -top-4 left-16"></div>
+      </div>
+    </div>
+    <div class="absolute top-24 cloud-slow opacity-60" style="top: 25%; animation-delay: -15s;">
+      <div class="w-44 h-12 bg-white rounded-full relative">
+        <div class="w-20 h-20 bg-white rounded-full absolute -top-10 left-6"></div>
+        <div class="w-16 h-16 bg-white rounded-full absolute -top-6 left-22"></div>
+      </div>
+    </div>
+    
+    <!-- Background Hills -->
+    <div class="absolute bottom-16 left-10 w-48 h-24 bg-green-500 rounded-t-full border-t-4 border-l-4 border-r-4 border-black opacity-90"></div>
+    <div class="absolute bottom-16 right-20 w-72 h-36 bg-green-600 rounded-t-full border-t-4 border-l-4 border-r-4 border-black opacity-80"></div>
+  </div>
+
+  <!-- MAIN HUD HEADER -->
+  <header id="hud" class="relative z-20 w-full max-w-5xl mx-auto p-3 sm:p-4">
+    <div class="mario-box bg-yellow-400 p-4 sm:p-6 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-black font-bold">
+      
+      <!-- World Info -->
+      <div class="flex items-center gap-2">
+        <span class="bg-red-600 text-white px-5 py-2 rounded-xl text-xl sm:text-3xl font-black tracking-wider border-3 border-black">
+          <span id="world-label">WORLD 1-1</span>
+        </span>
+      </div>
+
+      <!-- Lives Hearts -->
+      <div class="flex items-center gap-1.5 text-3xl sm:text-4xl" id="lives-container">
+        <span title="生命值">❤️</span>
+        <span title="生命值">❤️</span>
+        <span title="生命值">❤️</span>
+      </div>
+
+      <!-- Coins / Score -->
+      <div class="flex items-center gap-2 bg-yellow-100 px-5 py-2 rounded-xl border-3 border-black">
+        <span class="text-3xl sm:text-4xl animate-bounce">🪙</span>
+        <span class="font-black text-2xl sm:text-3xl text-yellow-900" id="coin-counter">x00</span>
+      </div>
+
+      <!-- Sound Mute Toggle Button -->
+      <button id="sound-btn" onclick="game.toggleSound()" class="bg-blue-500 hover:bg-blue-600 active:scale-95 text-white p-3 rounded-xl border-3 border-black shadow text-xl sm:text-2xl flex items-center gap-1">
+        <span id="sound-icon">🔊</span>
+      </button>
+
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="w-full bg-black/40 h-5 rounded-full mt-3 p-1 border-2 border-black/50">
+      <div id="progress-bar" class="bg-yellow-400 h-full rounded-full transition-all duration-300 w-0"></div>
+    </div>
+  </header>
+
+  <!-- GAMEPLAY CONTAINER -->
+  <main class="relative z-10 flex-1 max-w-5xl w-full mx-auto px-4 py-3 flex flex-col justify-center">
+
+    <!-- Floating Coin FX Animation Container -->
+    <div id="fx-layer" class="pointer-events-none absolute inset-0 z-50 overflow-hidden"></div>
+
+    <!-- VIEW 0: START SCREEN -->
+    <section id="view-start" class="mario-box bg-orange-100 p-6 sm:p-12 rounded-3xl text-center flex flex-col items-center shadow-2xl my-auto">
+      <div class="inline-block bg-red-500 text-white font-black text-xl sm:text-2xl px-6 py-2 rounded-full mb-4 border-3 border-black animate-pulse">
+        ★ 中文關聯詞冒險 ★
+      </div>
+      <h1 class="text-5xl sm:text-7xl font-black text-red-600 drop-shadow-[0_5px_0_rgba(0,0,0,1)] tracking-wide mb-6 leading-tight">
+        超級「不但……還……」大冒險
+      </h1>
+
+      <!-- Pixel Mario Vector Mascot -->
+      <div class="relative my-4 w-40 h-44 flex justify-center items-center">
+        <svg viewBox="0 0 100 110" class="w-full h-full drop-shadow-lg">
+          <!-- Hat -->
+          <path d="M25,30 Q50,10 75,30 Q85,35 75,40 L25,40 Z" fill="#E52521" stroke="#000" stroke-width="3"/>
+          <circle cx="50" cy="30" r="7" fill="#FFF" stroke="#000" stroke-width="1.5"/>
+          <text x="50" y="34" font-size="9" font-weight="bold" fill="#E52521" text-anchor="middle">M</text>
+          <!-- Head/Face -->
+          <circle cx="50" cy="52" r="22" fill="#FFCC99" stroke="#000" stroke-width="3"/>
+          <!-- Eyes -->
+          <circle cx="43" cy="48" r="3" fill="#000"/>
+          <circle cx="57" cy="48" r="3" fill="#000"/>
+          <!-- Mustache -->
+          <path d="M35,60 Q50,66 65,60 Q50,55 35,60" fill="#000"/>
+          <!-- Overalls Body -->
+          <path d="M30,72 L70,72 L75,100 L25,100 Z" fill="#002FBE" stroke="#000" stroke-width="3"/>
+          <!-- Red Shirt Arms -->
+          <path d="M15,75 Q25,72 30,80 L20,90 Z" fill="#E52521" stroke="#000" stroke-width="2"/>
+          <path d="M85,75 Q75,72 70,80 L80,90 Z" fill="#E52521" stroke="#000" stroke-width="2"/>
+          <!-- Yellow Buttons -->
+          <circle cx="40" cy="82" r="3" fill="#FFD700" stroke="#000" stroke-width="1"/>
+          <circle cx="60" cy="82" r="3" fill="#FFD700" stroke="#000" stroke-width="1"/>
+        </svg>
+      </div>
+
+      <p class="text-2xl sm:text-4xl text-gray-900 font-bold mb-8 max-w-3xl leading-relaxed">
+        庫巴把正確的句型拿走了！快跟着瑪利歐一起通過三個關卡，掌握「不但……還……」的遞進句型，收集金幣拯救公主吧！
+      </p>
+
+      <button onclick="game.startStage(1)" class="mario-box bg-green-500 hover:bg-green-400 active:scale-95 text-white font-black text-3xl sm:text-5xl px-12 py-6 rounded-3xl border-4 border-black transition shadow-2xl flex items-center gap-4">
+        <span>🎮</span> 開始冒險！
+      </button>
+
+      <!-- Rules Quick Overview -->
+      <div class="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 w-full text-left">
+        <div class="bg-white/95 p-4 rounded-xl border-3 border-black">
+          <span class="font-black text-red-600 text-xl sm:text-2xl">WORLD 1-1:</span><br/>
+          <span class="text-lg sm:text-2xl font-bold">選擇正確後半句配對！</span>
+        </div>
+        <div class="bg-white/95 p-4 rounded-xl border-3 border-black">
+          <span class="font-black text-green-600 text-xl sm:text-2xl">WORLD 1-2:</span><br/>
+          <span class="text-lg sm:text-2xl font-bold">辨析句子邏輯對(O)錯(X)！</span>
+        </div>
+        <div class="bg-white/95 p-4 rounded-xl border-3 border-black">
+          <span class="font-black text-blue-600 text-xl sm:text-2xl">WORLD 1-3:</span><br/>
+          <span class="text-lg sm:text-2xl font-bold">組合磚塊成為通順句子！</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 1: STAGE 1 (SENTENCE MATCHING) -->
+    <section id="view-world-1" class="hidden flex-col items-center">
+      <!-- Sentence Prompt Banner -->
+      <div class="mario-box bg-white w-full p-6 sm:p-10 rounded-3xl mb-6 text-center border-4 border-black shadow-xl">
+        <div class="text-xl sm:text-2xl text-red-600 font-black mb-3">【 第 1 關：上半句 】</div>
+        <h2 id="w1-prompt" class="text-3xl sm:text-5xl font-black text-gray-900 tracking-wide leading-relaxed">
+          這隻小狗不但很聰明，
+        </h2>
+      </div>
+
+      <!-- 4 Question Block Options -->
+      <div class="w-full grid grid-cols-1 sm:grid-cols-2 gap-5" id="w1-options-container">
+        <!-- Dynamic Options inserted here -->
+      </div>
+    </section>
+
+    <!-- VIEW 2: STAGE 2 (SENTENCE DISCRIMINATION O / X) -->
+    <section id="view-world-2" class="hidden flex-col items-center">
+      <!-- Signboard Container -->
+      <div class="mario-box bg-amber-100 w-full p-6 sm:p-12 rounded-3xl mb-8 text-center border-4 border-black relative shadow-2xl">
+        <div class="text-xl sm:text-2xl text-amber-900 font-black mb-4">📜 句子判斷告示牌 📜</div>
+        <p id="w2-sentence" class="text-3xl sm:text-5xl font-black text-gray-900 leading-relaxed mb-4">
+          「媽媽不但會做中式料理，還會做西式甜點。」
+        </p>
+        <div class="text-xl sm:text-3xl text-gray-800 font-bold">
+          請問這句「不但……還……」的使用是否正確？
+        </div>
+      </div>
+
+      <!-- O / X Giant Buttons -->
+      <div class="w-full grid grid-cols-2 gap-8 max-w-2xl">
+        <button onclick="game.checkWorld2(true)" class="mario-box bg-green-500 hover:bg-green-400 active:scale-95 text-white font-black text-5xl sm:text-7xl py-8 rounded-3xl border-4 border-black flex flex-col items-center gap-3 shadow-xl">
+          <span>⭕</span>
+          <span class="text-2xl sm:text-4xl font-black">正確 (O)</span>
+        </button>
+
+        <button onclick="game.checkWorld2(false)" class="mario-box bg-red-500 hover:bg-red-400 active:scale-95 text-white font-black text-5xl sm:text-7xl py-8 rounded-3xl border-4 border-black flex flex-col items-center gap-3 shadow-xl">
+          <span>❌</span>
+          <span class="text-2xl sm:text-4xl font-black">錯誤 (X)</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- VIEW 3: STAGE 3 (SENTENCE UNSCRAMBLE) -->
+    <section id="view-world-3" class="hidden flex-col items-center">
+      <div class="w-full text-center mb-5">
+        <span class="bg-black/80 text-yellow-300 text-xl sm:text-3xl px-6 py-3 rounded-full font-black inline-block border-2 border-yellow-400">
+          🧩 點擊下方的磚塊組成正確的句子
+        </span>
+      </div>
+
+      <!-- Target Sentence Slot Drop Area -->
+      <div class="mario-box bg-sky-100 w-full p-6 sm:p-10 rounded-3xl mb-8 border-4 border-black min-h-[160px] flex flex-wrap items-center justify-center gap-4 shadow-inner" id="w3-target-slots">
+        <!-- Selected tiles will appear here -->
+      </div>
+
+      <!-- Source Scrambled Brick Tiles -->
+      <div class="w-full flex flex-wrap justify-center gap-4 mb-8" id="w3-source-tiles">
+        <!-- Scrambled word bricks -->
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex gap-6">
+        <button onclick="game.resetWorld3Tiles()" class="bg-gray-800 hover:bg-gray-700 text-white font-black px-8 py-4 rounded-2xl border-4 border-black text-2xl sm:text-3xl active:scale-95 shadow-md">
+          🔄 重設
+        </button>
+        <button onclick="game.submitWorld3()" class="mario-box bg-yellow-400 hover:bg-yellow-300 text-black font-black px-12 py-4 rounded-2xl border-4 border-black text-2xl sm:text-4xl active:scale-95 shadow-xl">
+          ✅ 確認送出
+        </button>
+      </div>
+    </section>
+
+    <!-- VIEW 4: VICTORY / CLEAR SCREEN -->
+    <section id="view-clear" class="hidden mario-box bg-white p-8 sm:p-14 rounded-3xl text-center flex-col items-center shadow-2xl relative">
+      <!-- Fireworks Canvas overlay inside victory box -->
+      <canvas id="fireworks-canvas" class="absolute inset-0 pointer-events-none rounded-3xl z-0"></canvas>
+
+      <div class="relative z-10 w-full flex flex-col items-center">
+        <div class="text-yellow-500 text-6xl sm:text-8xl mb-3 animate-bounce">🏆</div>
+        <h2 class="text-5xl sm:text-7xl font-black text-red-600 tracking-wider mb-3 drop-shadow">
+          通關成功！
+        </h2>
+        <p class="text-gray-800 text-2xl sm:text-4xl mb-8 font-black">
+          太棒了！你完美奪回了所有的關聯詞寶磚！
+        </p>
+
+        <!-- Stats Card -->
+        <div class="w-full max-w-xl bg-yellow-50 p-8 sm:p-10 rounded-2xl border-4 border-black mb-8 text-left space-y-6 font-bold">
+          <div class="flex justify-between items-center text-2xl sm:text-4xl">
+            <span>💰 獲得金幣總數：</span>
+            <span class="text-3xl sm:text-5xl font-black text-yellow-600" id="final-coins">0</span>
+          </div>
+          <div class="flex justify-between items-center text-2xl sm:text-4xl">
+            <span>🎯 答對總數：</span>
+            <span class="text-3xl sm:text-4xl text-green-600 font-black" id="final-accuracy">15 / 15</span>
+          </div>
+          <hr class="border-black/30 my-3" />
+          <div class="flex justify-between items-center text-2xl sm:text-4xl">
+            <span>🏅 獲得稱號：</span>
+            <span class="text-3xl sm:text-4xl text-red-600 font-black" id="final-title">超級句型大師</span>
+          </div>
+        </div>
+
+        <button onclick="game.restartAll()" class="mario-box bg-green-500 hover:bg-green-400 active:scale-95 text-white font-black text-3xl sm:text-5xl px-12 py-6 rounded-3xl border-4 border-black shadow-xl">
+          🔄 重新挑戰
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MARIO BOTTOM STAGE LANDSCAPE & CHARACTER -->
+  <footer class="relative z-10 w-full max-w-5xl mx-auto px-4 pb-4">
+    <div class="w-full flex justify-between items-end relative min-h-[80px]">
+      
+      <!-- Animated Character Sprite -->
+      <div id="mario-avatar" class="transition-transform duration-300 relative z-10">
+        <svg viewBox="0 0 60 70" class="w-16 h-20 sm:w-20 sm:h-24 drop-shadow-md">
+          <!-- Hat -->
+          <path d="M15,20 Q30,5 45,20 L50,25 L10,25 Z" fill="#E52521" stroke="#000" stroke-width="2"/>
+          <circle cx="30" cy="18" r="4" fill="#FFF"/>
+          <!-- Face -->
+          <circle cx="30" cy="35" r="14" fill="#FFCC99" stroke="#000" stroke-width="2"/>
+          <circle cx="26" cy="32" r="2" fill="#000"/>
+          <circle cx="34" cy="32" r="2" fill="#000"/>
+          <path d="M22,40 Q30,44 38,40" fill="none" stroke="#000" stroke-width="2"/>
+          <!-- Body -->
+          <rect x="20" y="48" width="20" height="18" rx="4" fill="#002FBE" stroke="#000" stroke-width="2"/>
+          <circle cx="25" cy="54" r="2" fill="#FFD700"/>
+          <circle cx="35" cy="54" r="2" fill="#FFD700"/>
+        </svg>
+      </div>
+
+      <!-- Decorative Pipe -->
+      <div class="pipe-green w-16 h-20 sm:w-20 sm:h-24 rounded-t-lg relative flex justify-center items-start pt-1">
+        <div class="w-20 sm:w-24 h-5 bg-green-400 border-2 border-black rounded-sm absolute -top-5"></div>
+      </div>
+
+    </div>
+
+    <!-- Ground Blocks -->
+    <div class="w-full h-9 brick-block rounded-t-sm border-t-4 border-black"></div>
+  </footer>
+
+  <!-- EXPLANATION MODAL (For Stage 2 Incorrect/Learning Tips) -->
+  <div id="modal-explanation" class="fixed inset-0 bg-black/75 z-50 hidden flex items-center justify-center p-4">
+    <div class="dialog-box max-w-2xl w-full p-8 sm:p-12 rounded-3xl text-center relative animate-bounce-short">
+      <div class="text-5xl sm:text-6xl mb-3" id="modal-icon">💡</div>
+      <h3 class="text-4xl sm:text-5xl font-black text-gray-900 mb-6" id="modal-title">句型解析</h3>
+      <p class="text-2xl sm:text-4xl text-gray-900 leading-relaxed font-black mb-10" id="modal-body">
+        解析內容...
+      </p>
+      <button onclick="game.closeModal()" class="mario-box bg-yellow-400 hover:bg-yellow-300 text-black font-black text-2xl sm:text-4xl px-12 py-5 rounded-2xl border-4 border-black shadow-xl">
+        我知道了！👍
+      </button>
+    </div>
+  </div>
+
+  <!-- GAME LOGIC JAVASCRIPT -->
+  <script>
+    /* ===================================================================
+       1. WEB AUDIO API SYNTHESIZER (8-BIT SOUND EFFECTS)
+       =================================================================== */
+    class SoundSynth {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      jump() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.exponentialRampToValueAtTime(600, now + 0.15);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.15);
+      }
+
+      coin() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(987.77, now); // B5
+        osc.frequency.setValueAtTime(1318.51, now + 0.08); // E6
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.3);
+      }
+
+      wrong() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.linearRampToValueAtTime(110, now + 0.25);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.25);
+      }
+
+      fanfare() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const notes = [
+          {f: 261.63, d: 0.1}, {f: 329.63, d: 0.1}, {f: 392.00, d: 0.1},
+          {f: 523.25, d: 0.15}, {f: 659.25, d: 0.15}, {f: 783.99, d: 0.3}
+        ];
+        let time = this.ctx.currentTime;
+        notes.forEach(note => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.value = note.f;
+          gain.gain.setValueAtTime(0.15, time);
+          gain.gain.exponentialRampToValueAtTime(0.01, time + note.d);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(time);
+          osc.stop(time + note.d);
+          time += note.d + 0.02;
+        });
+      }
+    }
+
+    const sound = new SoundSynth();
+
+    /* ===================================================================
+       2. GAME DATA (15 QUESTIONS TOTAL ACROSS 3 WORLDS)
+       =================================================================== */
+    const GAME_DATA = {
+      world1: [
+        {
+          prompt: "這隻小狗不但很聰明，",
+          correct: "還會幫主人拿報紙。",
+          options: ["還會幫主人拿報紙。", "所以牠很喜歡睡覺。", "但是牠不喜歡吃骨頭。", "因為牠每天都在跑。"]
+        },
+        {
+          prompt: "姊姊不但書讀得好，",
+          correct: "還很擅長彈鋼琴。",
+          options: ["還很擅長彈鋼琴。", "而且討厭去學校。", "不過她從來不看書。", "所以每天都很累。"]
+        },
+        {
+          prompt: "這家店的蛋糕不但造型可愛，",
+          correct: "還非常美味可口。",
+          options: ["還非常美味可口。", "但是價格非常昂貴。", "結果沒有人想買。", "因為師傅很早起床。"]
+        },
+        {
+          prompt: "小明不但每天早起運動，",
+          correct: "還保持健康的飲食習慣。",
+          options: ["還保持健康的飲食習慣。", "所以上課常常遲到。", "可是身體越來越差。", "因此討厭吃蔬菜。"]
+        },
+        {
+          prompt: "今天的天氣不但晴朗溫暖，",
+          correct: "還吹着涼爽的微風。",
+          options: ["還吹着涼爽的微風。", "而且下起了傾盆大雨。", "但是出門要穿大衣。", "所以大家都待在家。"]
+        }
+      ],
+      world2: [
+        {
+          sentence: "媽媽不但會做中式料理，還會做西式甜點。",
+          answer: true,
+          explanation: "前後分句主語相同，語意呈遞進關係，使用完全正確！"
+        },
+        {
+          sentence: "他不但跑得很快，還走得很慢。",
+          answer: false,
+          explanation: "前後意思互相矛盾，沒有遞進關係，不能用「不但……還……」。"
+        },
+        {
+          sentence: "不但弟弟喜歡畫畫，還喜歡唱歌。",
+          answer: false,
+          explanation: "前後兩個分句的主語都是「弟弟」，「不但」應該放在主語「弟弟」的後面，改成「弟弟不但喜歡畫畫，還喜歡唱歌。」"
+        },
+        {
+          sentence: "這本書不但內容豐富，還附有精美的插圖。",
+          answer: true,
+          explanation: "先說內容好，再進一步說插圖美，層層遞進，非常通順！"
+        },
+        {
+          sentence: "他不但連走路都不穩，還會參加馬拉松比賽。",
+          answer: false,
+          explanation: "語意邏輯不合理，遞進方向反了！應該先說基礎的，再說更進一步的。"
+        }
+      ],
+      world3: [
+        {
+          tiles: ["小美", "不但", "寫字很工整，", "還", "畫得一手好畫。"],
+          target: ["小美", "不但", "寫字很工整，", "還", "畫得一手好畫。"]
+        },
+        {
+          tiles: ["這座公園", "不但", "風景優美，", "還", "有許多遊樂設施。"],
+          target: ["這座公園", "不但", "風景優美，", "還", "有許多遊樂設施。"]
+        },
+        {
+          tiles: ["爸爸", "不但", "工作認真，", "還", "常常陪我們玩遊戲。"],
+          target: ["爸爸", "不但", "工作認真，", "還", "常常陪我們玩遊戲。"]
+        },
+        {
+          tiles: ["多吃蔬果", "不但", "能補充維生素，", "還", "可以讓身體更健康。"],
+          target: ["多吃蔬果", "不但", "能補充維生素，", "還", "可以讓身體更健康。"]
+        },
+        {
+          tiles: ["這部電影", "不但", "故事感人，", "還", "帶給我們許多啟發。"],
+          target: ["這部電影", "不但", "故事感人，", "還", "帶給我們許多啟發。"]
+        }
+      ]
+    };
+
+    /* ===================================================================
+       3. MAIN GAME CONTROLLER CLASS
+       =================================================================== */
+    class MarioGame {
+      constructor() {
+        this.currentWorld = 1; // 1, 2, or 3
+        this.questionIdx = 0; // 0 to 4
+        this.coins = 0;
+        this.lives = 3;
+        this.totalCorrect = 0;
+        
+        // World 3 specific state
+        this.w3Selected = [];
+        this.w3Pool = [];
+      }
+
+      // Initialize UI
+      init() {
+        this.updateHUD();
+        this.showView('view-start');
+      }
+
+      toggleSound() {
+        sound.enabled = !sound.enabled;
+        document.getElementById('sound-icon').innerText = sound.enabled ? '🔊' : '🔇';
+      }
+
+      updateHUD() {
+        document.getElementById('coin-counter').innerText = `x${String(this.coins).padStart(2, '0')}`;
+        document.getElementById('world-label').innerText = `WORLD 1-${this.currentWorld}`;
+        
+        // Update Hearts
+        const heartsContainer = document.getElementById('lives-container');
+        heartsContainer.innerHTML = '';
+        for (let i = 0; i < 3; i++) {
+          const heart = document.createElement('span');
+          heart.innerText = i < this.lives ? '❤️' : '🖤';
+          heartsContainer.appendChild(heart);
+        }
+
+        // Progress Bar Calculation (total 15 questions)
+        const totalCompleted = (this.currentWorld - 1) * 5 + this.questionIdx;
+        const progressPct = Math.min(100, Math.round((totalCompleted / 15) * 100));
+        document.getElementById('progress-bar').style.width = `${progressPct}%`;
+      }
+
+      showView(viewId) {
+        const views = ['view-start', 'view-world-1', 'view-world-2', 'view-world-3', 'view-clear'];
+        views.forEach(id => {
+          const el = document.getElementById(id);
+          if (id === viewId) {
+            el.classList.remove('hidden');
+            el.classList.add('flex');
+          } else {
+            el.classList.add('hidden');
+            el.classList.remove('flex');
+          }
+        });
+      }
+
+      triggerJumpEffect() {
+        sound.jump();
+        const avatar = document.getElementById('mario-avatar');
+        avatar.classList.remove('mario-jump');
+        void avatar.offsetWidth; // Force reflow
+        avatar.classList.add('mario-jump');
+      }
+
+      spawnCoinFX(eventTarget) {
+        sound.coin();
+        this.coins += 100;
+        this.updateHUD();
+
+        // Create floating coin element
+        const fxLayer = document.getElementById('fx-layer');
+        const coin = document.createElement('div');
+        coin.className = 'absolute font-pixel font-bold text-yellow-300 text-xl coin-pop flex items-center gap-1';
+        coin.innerHTML = '🪙 +100';
+
+        if (eventTarget) {
+          const rect = eventTarget.getBoundingClientRect();
+          coin.style.left = `${rect.left + rect.width / 2 - 30}px`;
+          coin.style.top = `${rect.top - 20}px`;
+        } else {
+          coin.style.left = '50%';
+          coin.style.top = '40%';
+        }
+
+        fxLayer.appendChild(coin);
+        setTimeout(() => coin.remove(), 700);
+      }
+
+      triggerWrongAnswer() {
+        sound.wrong();
+        this.lives = Math.max(0, this.lives - 1);
+        this.updateHUD();
+
+        const mainHUD = document.getElementById('hud');
+        mainHUD.classList.add('shake-anim');
+        setTimeout(() => mainHUD.classList.remove('shake-anim'), 400);
+
+        if (this.lives === 0) {
+          // Auto revive so player can continue learning
+          setTimeout(() => {
+            this.showModal('💔 生命值耗盡！', '沒關係！蘑菇王國給你補給，滿血復活繼續挑戰！', '🍄 繼續冒險');
+            this.lives = 3;
+            this.updateHUD();
+          }, 300);
+        }
+      }
+
+      /* ==================== WORLD STAGE MANAGEMENT ==================== */
+      startStage(worldNum) {
+        this.currentWorld = worldNum;
+        this.questionIdx = 0;
+        this.updateHUD();
+
+        if (worldNum === 1) {
+          this.showView('view-world-1');
+          this.loadWorld1Question();
+        } else if (worldNum === 2) {
+          this.showView('view-world-2');
+          this.loadWorld2Question();
+        } else if (worldNum === 3) {
+          this.showView('view-world-3');
+          this.loadWorld3Question();
+        }
+      }
+
+      nextQuestion() {
+        this.questionIdx++;
+        this.totalCorrect++;
+
+        if (this.questionIdx >= 5) {
+          // Move to next World or Finish
+          if (this.currentWorld < 3) {
+            const nextW = this.currentWorld + 1;
+            this.startStage(nextW);
+          } else {
+            this.showVictoryScreen();
+          }
+        } else {
+          this.updateHUD();
+          if (this.currentWorld === 1) this.loadWorld1Question();
+          if (this.currentWorld === 2) this.loadWorld2Question();
+          if (this.currentWorld === 3) this.loadWorld3Question();
+        }
+      }
+
+      /* ==================== WORLD 1 LOGIC ==================== */
+      loadWorld1Question() {
+        const qData = GAME_DATA.world1[this.questionIdx];
+        document.getElementById('w1-prompt').innerText = qData.prompt;
+
+        const optionsContainer = document.getElementById('w1-options-container');
+        optionsContainer.innerHTML = '';
+
+        // Shuffle options for variety
+        const shuffled = [...qData.options].sort(() => Math.random() - 0.5);
+
+        shuffled.forEach((optText, index) => {
+          const btn = document.createElement('button');
+          btn.className = 'question-block p-6 sm:p-8 rounded-2xl font-black text-left text-2xl sm:text-4xl text-black flex items-center justify-between gap-4 leading-normal';
+          btn.innerHTML = `
+            <span class="flex-1">${optText}</span>
+            <span class="text-yellow-900 text-xl sm:text-3xl bg-yellow-300 px-4 py-2 rounded-xl border-2 border-black font-black">?</span>
+          `;
+          btn.onclick = (e) => this.checkWorld1(optText, qData.correct, e.currentTarget);
+          optionsContainer.appendChild(btn);
+        });
+      }
+
+      checkWorld1(selected, correct, btnEl) {
+        if (selected === correct) {
+          this.triggerJumpEffect();
+          this.spawnCoinFX(btnEl);
+          btnEl.classList.remove('question-block');
+          btnEl.classList.add('bg-green-400', 'border-4', 'border-black');
+          setTimeout(() => this.nextQuestion(), 500);
+        } else {
+          this.triggerWrongAnswer();
+          btnEl.classList.add('shake-anim');
+          setTimeout(() => btnEl.classList.remove('shake-anim'), 400);
+        }
+      }
+
+      /* ==================== WORLD 2 LOGIC ==================== */
+      loadWorld2Question() {
+        const qData = GAME_DATA.world2[this.questionIdx];
+        document.getElementById('w2-sentence').innerText = `「${qData.sentence}」`;
+      }
+
+      checkWorld2(userChoice) {
+        const qData = GAME_DATA.world2[this.questionIdx];
+        if (userChoice === qData.answer) {
+          this.triggerJumpEffect();
+          this.spawnCoinFX(null);
+          this.nextQuestion();
+        } else {
+          this.triggerWrongAnswer();
+          // Display explanation modal
+          this.showModal('❌ 答錯囉！學習小提示', qData.explanation);
+        }
+      }
+
+      /* ==================== WORLD 3 LOGIC ==================== */
+      loadWorld3Question() {
+        const qData = GAME_DATA.world3[this.questionIdx];
+        this.w3Selected = [];
+        // Shuffle source tiles
+        this.w3Pool = [...qData.tiles].sort(() => Math.random() - 0.5);
+        this.renderWorld3Tiles();
+      }
+
+      renderWorld3Tiles() {
+        const targetContainer = document.getElementById('w3-target-slots');
+        const sourceContainer = document.getElementById('w3-source-tiles');
+        targetContainer.innerHTML = '';
+        sourceContainer.innerHTML = '';
+
+        // Render selected tiles in upper slot
+        if (this.w3Selected.length === 0) {
+          targetContainer.innerHTML = '<span class="text-gray-500 font-black text-2xl sm:text-3xl">（請點擊下方詞語方塊進行組合）</span>';
+        } else {
+          this.w3Selected.forEach((word, idx) => {
+            const tile = document.createElement('button');
+            tile.className = 'brick-tile text-white font-black text-2xl sm:text-4xl px-6 py-4 rounded-2xl cursor-pointer hover:scale-105 active:scale-95 transition shadow-lg';
+            tile.innerText = word;
+            tile.onclick = () => {
+              this.w3Pool.push(this.w3Selected.splice(idx, 1)[0]);
+              this.renderWorld3Tiles();
+            };
+            targetContainer.appendChild(tile);
+          });
+        }
+
+        // Render remaining pool tiles
+        this.w3Pool.forEach((word, idx) => {
+          const tile = document.createElement('button');
+          tile.className = 'brick-block text-yellow-100 font-black text-2xl sm:text-4xl px-6 py-4 rounded-2xl cursor-pointer hover:scale-105 active:scale-95 transition shadow-lg';
+          tile.innerText = word;
+          tile.onclick = () => {
+            this.w3Selected.push(this.w3Pool.splice(idx, 1)[0]);
+            this.renderWorld3Tiles();
+          };
+          sourceContainer.appendChild(tile);
+        });
+      }
+
+      resetWorld3Tiles() {
+        const qData = GAME_DATA.world3[this.questionIdx];
+        this.w3Selected = [];
+        this.w3Pool = [...qData.tiles].sort(() => Math.random() - 0.5);
+        this.renderWorld3Tiles();
+      }
+
+      submitWorld3() {
+        const qData = GAME_DATA.world3[this.questionIdx];
+        const userSentence = this.w3Selected.join('');
+        const targetSentence = qData.target.join('');
+
+        if (userSentence === targetSentence) {
+          this.triggerJumpEffect();
+          this.spawnCoinFX(null);
+          this.nextQuestion();
+        } else {
+          this.triggerWrongAnswer();
+          const targetSlot = document.getElementById('w3-target-slots');
+          targetSlot.classList.add('shake-anim');
+          setTimeout(() => targetSlot.classList.remove('shake-anim'), 400);
+        }
+      }
+
+      /* ==================== MODAL & VICTORY ==================== */
+      showModal(title, bodyText, btnLabel = "我知道了！👍") {
+        document.getElementById('modal-title').innerText = title;
+        document.getElementById('modal-body').innerText = bodyText;
+        document.getElementById('modal-explanation').classList.remove('hidden');
+      }
+
+      closeModal() {
+        document.getElementById('modal-explanation').classList.add('hidden');
+      }
+
+      showVictoryScreen() {
+        sound.fanfare();
+        this.showView('view-clear');
+
+        document.getElementById('final-coins').innerText = `x${this.coins}`;
+        document.getElementById('final-accuracy').innerText = `15 / 15 題`;
+        
+        let titleName = "超級句型大師 👑";
+        if (this.coins >= 1500) titleName = "傳奇語文瑪利歐 ⭐";
+        document.getElementById('final-title').innerText = titleName;
+
+        // Launch Fireworks
+        this.startFireworks();
+      }
+
+      startFireworks() {
+        const canvas = document.getElementById('fireworks-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = canvas.parentElement.clientHeight;
+
+        const particles = [];
+        const colors = ['#FFD700', '#FF2222', '#22FF22', '#2288FF', '#FF00FF'];
+
+        function createExplosion() {
+          const x = Math.random() * canvas.width;
+          const y = Math.random() * (canvas.height * 0.6);
+          const color = colors[Math.floor(Math.random() * colors.length)];
+          for (let i = 0; i < 30; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 4 + 1;
+            particles.push({
+              x, y,
+              vx: Math.cos(angle) * speed,
+              vy: Math.sin(angle) * speed,
+              alpha: 1,
+              color
+            });
+          }
+        }
+
+        let count = 0;
+        function loop() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          if (count % 20 === 0 && count < 200) createExplosion();
+          count++;
+
+          particles.forEach((p, idx) => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.alpha -= 0.015;
+            ctx.globalAlpha = Math.max(0, p.alpha);
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (p.alpha <= 0) particles.splice(idx, 1);
+          });
+
+          if (count < 250 || particles.length > 0) {
+            requestAnimationFrame(loop);
+          }
+        }
+        loop();
+      }
+
+      restartAll() {
+        this.currentWorld = 1;
+        this.questionIdx = 0;
+        this.coins = 0;
+        this.lives = 3;
+        this.totalCorrect = 0;
+        this.init();
+      }
+    }
+
+    // Instantiate game engine
+    const game = new MarioGame();
+
+    window.onload = () => {
+      game.init();
+    };
+  </script>
+</body>
+</html>
